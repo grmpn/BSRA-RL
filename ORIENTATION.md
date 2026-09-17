@@ -1,6 +1,6 @@
 # RL orientation
 
-This short orientation gives us shared vocabulary before the next meeting. Plan for **60–90 minutes**. You do not need to install anything, write code, submit work, or understand every equation.
+This orientation gives us shared vocabulary before the next meeting. You do not need to install anything, write code, submit work, or understand every equation.
 
 ## Checklist
 
@@ -9,7 +9,7 @@ This short orientation gives us shared vocabulary before the next meeting. Plan 
 3. **Skim:** [Gymnasium — Basic Usage](https://gymnasium.farama.org/introduction/basic_usage/). Follow the flow from `reset()` through repeated `step()` calls; notice observations, actions, rewards, termination, and truncation.
 4. **Skim:** [Stable-Baselines3 — Getting Started](https://stable-baselines3.readthedocs.io/en/master/guide/quickstart.html). Look for how a model is created, trained, saved, and used for prediction. Do not run the code yet.
 
-Keep the [glossary](GLOSSARY.md) open if a term is unfamiliar. The [reading list](resources/reading-list.md) explains why each resource was selected.
+The [reading list](resources/reading-list.md) explains why each resource was selected.
 
 ## Be ready to discuss
 
