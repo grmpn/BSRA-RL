@@ -11,7 +11,7 @@ This orientation gives us shared vocabulary before the next meeting. You do not 
 
 The [reading list](resources/reading-list.md) explains why each resource was selected.
 
-## Be ready to discuss
+## What you should know after reading
 
 - In cart-pole, what are the agent, environment, observation, and action?
 - How is a reward different from the return over an episode?
