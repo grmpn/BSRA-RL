@@ -1,0 +1,16 @@
+# Private repository-planning files
+AGENTS.md
+CONTEXT.md
+PLANNING.md
+.obsidian/
+
+# Local Python files
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Generated training artifacts
+logs/
+runs/
+models/
+videos/
