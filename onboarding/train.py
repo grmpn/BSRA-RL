@@ -72,9 +72,8 @@ def train(run_name: str, seed: int = 0, total_timesteps: int = 100_000, smoke: b
     env = Monitor(make_env())
     start = time.perf_counter()
     try:
-        # MEMBER TODO 4.1: Construct model = PPO("MlpPolicy", env, ...).
-        # Pass device="cpu", seed=seed, tensorboard_log=str(log_dir),
-        # verbose=0, and **settings. The monitored environment is supplied.
+        # MEMBER TODO 4.1: Construct model a MLP PPO policy using SB3 
+        # Pass device="cpu", seed=seed, tensorboard_log=str(log_dir), verbose=0, and **settings. The monitored environment is supplied.
         raise NotImplementedError("Section 4: construct PPO")
 
         # MEMBER TODO 4.2: Train for total_timesteps with tb_log_name="ppo".
