@@ -1,4 +1,4 @@
-# BSRA Reinforcement Learning
+di# BSRA Reinforcement Learning
 
 This is the learning and research hub for the Reinforcement Learning subteam of the [Boiler Soccer Robots Association](https://github.com/Fabricio-Giusti/BSRA-Documentation). We study how agents can learn useful humanoid-soccer behaviors in simulation and, eventually, transfer them to a robot.
 
