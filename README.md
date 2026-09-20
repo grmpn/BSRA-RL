@@ -17,7 +17,7 @@ Production robot skills, long-running experiments, trained policies, and member 
 
 1. Complete the [orientation](ORIENTATION.md).
 2. See how the team's [toolchain](resources/toolchain.md) fits together.
-3. Return for the upcoming [cart-pole onboarding assignment](onboarding/README.md).
+3. Complete the [cart-pole onboarding assignment](ONBOARDING.md).
 4. Move into a separate project repository when you receive a team assignment.
 
 ## Initial toolchain

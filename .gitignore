@@ -9,6 +9,10 @@ CARTPOLE_ONBOARDING_PLANNING.md
 .venv/
 __pycache__/
 .pytest_cache/
+*.egg-info/
+build/
+dist/
+.ruff_cache/
 
 # Generated training artifacts
 logs/
