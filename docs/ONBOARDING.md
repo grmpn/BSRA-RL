@@ -1,22 +1,41 @@
 # CartPole onboarding
 
-Build a MuJoCo cart-pole, connect it to Gymnasium, and train and evaluate a PPO
-policy. Finish with a short report and a pull request in your own fork.
-This is a learning exercise; robot skills and larger experiments belong in separate repositories.
+CartPole is a balancing task: a pole is attached by a free hinge to a cart that
+moves left and right. You control the cart's motor, and the pole moves in response
+to gravity and the cart's motion. The objective is to keep the pole upright for
+as long as possible within an episode.
+
+You will build the physical model in MuJoCo, connect it to Gymnasium's supplied
+balancing task, and train a PPO policy (a learned controller). The policy receives
+the cart and pole positions and velocities, then chooses a motor control. It
+learns from rewards for keeping the pole upright. You will evaluate the saved
+policy against random actions to see what it learned.
+
+By the end, you should be able to explain how simulation, observations, actions,
+rewards, and training results connect across the toolchain, and support your
+conclusions with a repeatable experiment. Finish with a short report and a pull
+request in your own fork.
 
 Start after the [orientation](ORIENTATION.md). You need basic Python functions,
 classes, and imports; Git and RL experience are not required. Budget about
-**8–12 focused hours over two weeks**, with a third week for setup or debugging.
+**4–8 focused hours over two weeks**, with a third week for setup or debugging.
 The effort estimate still needs a beginner pilot.
 
-| Section | Outcome | Time |
-| --- | --- | --- |
-| 1. Setup | Working fork, branch, and Python environment | 1.5–2 h |
-| 2. Model | Two composed XML files that load and move | 2–3 h |
-| 3. Environment | A checked, documented RL task | 1.5–2 h |
-| 4. Training | Saved policy and TensorBoard logs | 1–2 h |
-| 5. Evaluation | Baseline comparison and one recorded episode | 1–1.5 h |
-| 6. Handoff | Report and reviewed, merged fork PR | 1–1.5 h |
+**Before starting:** read the [toolchain overview](../resources/toolchain.md).
+Be able to explain how MuJoCo, Gymnasium, Stable-Baselines3 (SB3), and TensorBoard
+contribute to this exercise, and answer the toolchain question in
+[REPORT.md](REPORT.md#setup). As you work through each stage, use the report
+questions to trace which tool uses the inputs you write, where its outputs come
+from, and what uses those outputs next.
+
+| Section        | Outcome                                      |
+| -------------- | -------------------------------------------- |
+| 1. Setup       | Working fork, branch, and Python environment |
+| 2. Model       | Two composed XML files that load and move    |
+| 3. Environment | A checked, documented RL task                |
+| 4. Training    | Saved policy and TensorBoard logs            |
+| 5. Evaluation  | Baseline comparison and one recorded episode |
+| 6. Handoff     | Report and reviewed, merged fork PR          |
 
 **Member files:** complete `MEMBER TODO` blocks in `assets/cartpole.xml`,
 `assets/scene.xml`, `onboarding/env.py`, `onboarding/train.py`, and
@@ -31,7 +50,7 @@ sections are expected to fail; the setup diagnostic works immediately.
 
 **Files to edit:** [REPORT.md](REPORT.md) (Setup).
 
-Read the [toolchain overview](../resources/toolchain.md). Install
+Install
 [Git](https://docs.github.com/en/get-started/git-basics/set-up-git) and
 [uv](https://docs.astral.sh/uv/getting-started/installation/) in the environment
 where you will run the exercise. New to terminals? Read the
@@ -170,7 +189,9 @@ Each viewer trial starts from zero. Rotate the camera to check the axes.
 and the pole rotates about the hinge. It need not balance without a policy.
 
 Save a small screenshot in `results/model.png`, link it in the report, and explain
-which XML file owns the mechanism. Commit the two XML files and report evidence.
+which XML file owns the mechanism. Use `scripts/view_model.py` to identify which
+tool loads the XML and produces the simulated motion, then answer the report's
+model questions. Commit the two XML files and report evidence.
 
 ## 3. Environment setup and inspection
 
@@ -204,12 +225,17 @@ reading the supplied environment code; no separate state-access exercise is need
 
 Read `_get_obs()`, `reset_model()`, and `step()` in the
 [pinned upstream implementation](https://github.com/Farama-Foundation/Gymnasium/blob/v1.2.3/gymnasium/envs/mujoco/inverted_pendulum_v5.py).
+Follow `do_simulation()` into the
+[MuJoCo environment base class](https://github.com/Farama-Foundation/Gymnasium/blob/v1.2.3/gymnasium/envs/mujoco/mujoco_env.py)
+to see how actions reach `data.ctrl` and MuJoCo advances the simulation.
 Use that source, your XML, the constants in `onboarding/env.py`, and the linked
 documentation to fill the task table in `docs/REPORT.md` in your own words:
 
-- How does `_get_obs()` turn `qpos` and `qvel` into the observation? Match each
-  entry to a joint and identify its units, shape, and dtype.
-- What action can the policy choose, and how does the motor's gear affect it?
+- Which tool updates `qpos` and `qvel`, and how does `_get_obs()` turn them into
+  the observation read by the policy? Match each entry to a joint and identify
+  its units, shape, and dtype.
+- What action can the policy choose, how does it reach MuJoCo's actuator control,
+  and how does the motor's gear affect it?
 - How much simulated time passes per action? Check the physics timestep,
   `env.unwrapped.frame_skip`, and `env.unwrapped.dt`.
 - What changes at reset, and what does setting a seed reproduce?
@@ -291,7 +317,11 @@ revision, then train the policy you will evaluate in Stage 5:
 uv run python scripts/train.py --run-name first-run --seed 0 --steps 100000
 ```
 
-Open TensorBoard to inspect the recorded learning statistics:
+Read SB3's [TensorBoard integration guide](https://stable-baselines3.readthedocs.io/en/v2.7.1/guide/tensorboard.html)
+and [metric definitions](https://stable-baselines3.readthedocs.io/en/v2.7.1/common/logger.html#rollout).
+Use the report questions to distinguish the environment's rewards, `Monitor`'s
+episode statistics, SB3's logging, and TensorBoard's display. Open TensorBoard
+to inspect the recorded learning statistics:
 
 ```bash
 uv run tensorboard --logdir runs
@@ -358,7 +388,9 @@ uv run python scripts/evaluate.py --policy models/first-run/policy.zip --run-nam
 ```
 
 **Finished when:** tests pass, the video plays, and your report compares the
-baseline and PPO results using the generated CSV and JSON files.
+baseline and PPO results using the generated CSV and JSON files. Explain how
+`onboarding/evaluate.py` uses the saved policy and environment to produce those
+results and the video.
 
 ## 6. Report and GitHub handoff
 
