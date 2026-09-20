@@ -1,6 +1,8 @@
 import csv
 import json
+from pathlib import Path
 
+import gymnasium as gym
 import numpy as np
 import pytest
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
@@ -9,7 +11,7 @@ from onboarding.evaluate import choose_action, evaluate, load_policy, run_episod
 from onboarding.train import train
 
 
-def test_training_smoke(trained_run):
+def test_training_smoke(trained_run: tuple[Path, Path]) -> None:
     root, policy = trained_run
     assert policy.is_file()
     metadata = json.loads((root / "results/smoke/run.json").read_text())
@@ -26,7 +28,7 @@ def test_training_smoke(trained_run):
         train("smoke", smoke=True, output_dir=root)
 
 
-def test_policy_round_trip(trained_run, env):
+def test_policy_round_trip(trained_run: tuple[Path, Path], env: gym.Env) -> None:
     _, policy_path = trained_run
     policy = load_policy(policy_path)
     observation, _ = env.reset(seed=10_000)
@@ -39,12 +41,14 @@ def test_policy_round_trip(trained_run, env):
         assert row["terminated"] or row["truncated"]
 
 
-def test_evaluation_outputs(trained_run, monkeypatch):
+def test_evaluation_outputs(
+    trained_run: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
+) -> None:
     root, policy = trained_run
     # Ordinary evaluation must neither render nor start a video encoder.
     import imageio_ffmpeg
     from gymnasium.envs.mujoco.inverted_pendulum_v5 import InvertedPendulumEnv
-    def forbidden(*args, **kwargs):
+    def forbidden(*args: object, **kwargs: object) -> None:
         pytest.fail("Core evaluation attempted rendering or video encoding")
     monkeypatch.setattr(imageio_ffmpeg, "write_frames", forbidden)
     monkeypatch.setattr(InvertedPendulumEnv, "render", forbidden)
@@ -77,7 +81,9 @@ def test_evaluation_outputs(trained_run, monkeypatch):
         evaluate("invalid", seeds=(1, 1), output_dir=root)
 
 
-def test_evaluation_rejects_mismatched_policy(trained_run, tmp_path):
+def test_evaluation_rejects_mismatched_policy(
+    trained_run: tuple[Path, Path], tmp_path: Path,
+) -> None:
     root, _ = trained_run
     wrong_policy = tmp_path / "wrong.zip"
     wrong_policy.write_bytes(b"not the recorded policy")

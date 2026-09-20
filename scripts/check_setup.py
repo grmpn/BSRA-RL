@@ -1,6 +1,7 @@
 """Check installation before completing any member TODOs."""
 
 import argparse
+from collections.abc import Callable
 import importlib
 from importlib.metadata import version
 import platform
@@ -11,7 +12,7 @@ FIXTURE = """<mujoco><worldbody><body pos="0 0 1">
 </body><light pos="0 -1 3"/></worldbody></mujoco>"""
 
 
-def check(label, function):
+def check(label: str, function: Callable[[], None]) -> bool:
     try:
         function()
         print(f"PASS {label}")
@@ -21,7 +22,7 @@ def check(label, function):
         return False
 
 
-def imports():
+def imports() -> None:
     for module, distribution in [
         ("gymnasium", "gymnasium"), ("mujoco", "mujoco"),
         ("stable_baselines3", "stable-baselines3"), ("torch", "torch"),
@@ -34,17 +35,17 @@ def imports():
     importlib.import_module("tensorboard.default")
 
 
-def cpu():
+def cpu() -> None:
     import torch
     assert (torch.tensor([1.0, 2.0], device="cpu") ** 2).sum().item() == 5.0
 
 
-def encoder():
+def encoder() -> None:
     import imageio_ffmpeg
     print(f"  FFmpeg {imageio_ffmpeg.get_ffmpeg_version()}")
 
 
-def physics():
+def physics() -> None:
     import mujoco
     import numpy as np
     model = mujoco.MjModel.from_xml_string(FIXTURE)
@@ -54,7 +55,7 @@ def physics():
     assert data.time > 0 and np.isfinite(data.qpos).all() and data.qpos[0] < 0
 
 
-def render(viewer):
+def render(viewer: bool) -> None:
     import mujoco
     model = mujoco.MjModel.from_xml_string(FIXTURE)
     if viewer:
@@ -69,7 +70,7 @@ def render(viewer):
             assert frame.shape == (480, 640, 3) and frame.std() > 0
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--viewer", action="store_true", help="open a 3-second interactive viewer")
     parser.add_argument("--rgb", action="store_true", help="check offscreen rendering separately")

@@ -32,6 +32,8 @@ use either branch directly and start at `uv sync`.
 
 ## 1. Setup and Git workflow
 
+**Files to edit:** [REPORT.md](REPORT.md) (Setup).
+
 Read the [toolchain overview](resources/toolchain.md). Install
 [Git](https://docs.github.com/en/get-started/git-basics/set-up-git) and
 [uv](https://docs.astral.sh/uv/getting-started/installation/) in the environment
@@ -46,9 +48,6 @@ through working with directories. `pwd` shows your directory; `cd` changes it.
 | Apple Silicon macOS | Use native ARM64 Python through uv. CPU training is configured. Use the `mjpython` viewer commands below. This platform still needs a runtime pilot of this lockfile. |
 | Intel Mac / other architectures | This lockfile does not target these systems. Arrange access to a Linux x86-64 machine with a maintainer before starting. |
 
-The dependency set uses Python 3.12.3 and was installed with uv 0.12.13 on Ubuntu
-under WSL2 x86-64. Training, WSLg viewing, and software offscreen rendering are checked there;
-that does not establish compatibility or runtime on every laptop.
 
 ### Fork, clone, and install
 
@@ -117,6 +116,9 @@ you edited. The final workflow is **branch → push → PR into your fork → re
 
 ## 2. XML model and scene creation
 
+**Files to edit:** [assets/cartpole.xml](assets/cartpole.xml),
+[assets/scene.xml](assets/scene.xml), and [REPORT.md](REPORT.md) (Model and task).
+
 **Before starting:** setup passes. Read MuJoCo's
 [modeling introduction](https://mujoco.readthedocs.io/en/stable/modeling.html)
 on bodies, joints, geoms, and actuators; use the
@@ -144,7 +146,7 @@ the hinge is unactuated. XML angles use degrees here, while runtime joint angles
 use radians. Colors, camera placement, and scenery dimensions are your choice.
 
 ```bash
-uv run python -m pytest test/test_model.py -q
+uv run python -m pytest test/test_model.py
 uv run python scripts/view_model.py
 uv run python scripts/view_model.py --control 0.1 --seconds 1
 uv run python scripts/view_model.py --control -0.1 --seconds 1
@@ -157,38 +159,86 @@ and the pole rotates about the hinge. It need not balance without a policy.
 Save a small screenshot in `results/model.png`, link it in the report, and explain
 which XML file owns the mechanism. Commit the two XML files and report evidence.
 
-## 3. Environment definition and validation
+## 3. Environment setup and inspection
+
+**Files to edit:** [onboarding/env.py](onboarding/env.py) and
+[REPORT.md](REPORT.md) (Model and task).
 
 **Before starting:** model tests pass. Review
 [Gymnasium basic usage](https://gymnasium.farama.org/introduction/basic_usage/) and
 the [InvertedPendulum task](https://gymnasium.farama.org/environments/mujoco/inverted_pendulum/).
-We use its supplied behavior with our custom model, rather than writing a simulator
-or environment class from scratch.
+Gymnasium already defines the observations, rewards, reset behavior, and termination
+rules. Your job is to connect our custom model and understand that supplied task.
+You do not need to design or implement observation or reward functions.
 
 Complete `make_env()` in `onboarding/env.py`, using the supplied path and task
 constants. Pass the rendering mode and episode limit through to `gym.make()`.
-The latter applies the `TimeLimit` wrapper. Fill the task table in `REPORT.md`:
+The latter applies the `TimeLimit` wrapper.
 
-| Component | Required behavior |
-| --- | --- |
-| Observation | `qpos` followed by `qvel`: cart position (m), pole angle (rad), cart velocity (m/s), pole angular velocity (rad/s); unbounded `(4,)` float64 Box |
-| Action | `(1,)` float32 Box, `[-3, 3]`; motor control, multiplied by gear `100` to produce cart force in N |
-| Timing | Two `0.02 s` physics steps per action: `0.04 s`, or 25 actions/s |
-| Reset | Upright zero state plus independent uniform `[-0.01, 0.01]` noise on each position and velocity, using Gymnasium's seeded RNG |
-| Reward | `1` for a healthy state after the action, otherwise `0` |
-| Termination | Any non-finite observation or absolute pole angle greater than `0.2 rad` |
-| Truncation | At 1,000 environment steps |
+### Access the simulation state
 
-The physical cart travel limit does not itself end an episode. Explain why falling
-and reaching a time limit are different and why the rollout must reset after either.
-Trace `reset()` and `step()` in the
-[upstream implementation](https://github.com/Farama-Foundation/Gymnasium/blob/v1.2.3/gymnasium/envs/mujoco/inverted_pendulum_v5.py):
-where does physics run, and where are observations and rewards made?
+Use `env.reset()` and `env.step(action)` through the wrapped environment so that
+the episode limit stays active. For inspection, [`env.unwrapped`](https://gymnasium.farama.org/api/env/#gymnasium.Env.unwrapped)
+gives you the underlying `InvertedPendulumEnv`. Its `model` is a `mujoco.MjModel`
+containing the compiled model parameters; its `data` is a `mujoco.MjData`
+containing the current simulation state. Access joint positions through
+`env.unwrapped.data.qpos`, joint velocities through `.qvel`, and actuator controls
+through `.ctrl`. MuJoCo also supports
+[access by joint name](https://mujoco.readthedocs.io/en/stable/python.html#named-access).
+These arrays are live views; use `.copy()` to keep a snapshot before stepping.
+
+After completing `make_env()`, run this from the repository root:
+
+```bash
+uv run python - <<'PY'
+import mujoco
+from onboarding.env import make_env
+
+env = make_env()
+try:
+    observation, info = env.reset(seed=7)
+    model: mujoco.MjModel = env.unwrapped.model
+    data: mujoco.MjData = env.unwrapped.data
+    print("observation:", observation, observation.shape, observation.dtype)
+    print("spaces:", env.observation_space, env.action_space)
+    print("joint positions:", data.qpos.copy())
+    print("joint velocities:", data.qvel.copy())
+    print("hinge position/velocity:", data.joint("hinge").qpos, data.joint("hinge").qvel)
+    print("physics timestep:", model.opt.timestep)
+    env.action_space.seed(7)
+    action = env.action_space.sample()
+    observation, reward, terminated, truncated, info = env.step(action)
+    print("action / controls:", action, data.ctrl.copy())
+    print("after step:", observation, reward, terminated, truncated)
+finally:
+    env.close()
+PY
+```
+
+### Explain the supplied task
+
+Read `_get_obs()`, `reset_model()`, and `step()` in the
+[pinned upstream implementation](https://github.com/Farama-Foundation/Gymnasium/blob/v1.2.3/gymnasium/envs/mujoco/inverted_pendulum_v5.py).
+Use that source, your XML, the constants in `onboarding/env.py`, and the inspection
+above to fill the task table in `REPORT.md` in your own words:
+
+- How does `_get_obs()` turn `qpos` and `qvel` into the observation? Match each
+  entry to a joint and identify its units, shape, and dtype.
+- What action can the policy choose, and how does the motor's gear affect it?
+- How much simulated time passes per action? Check the physics timestep,
+  `env.unwrapped.frame_skip`, and `env.unwrapped.dt`.
+- What changes at reset, and what does setting a seed reproduce?
+- Where does `step()` advance physics, compute the reward, and decide termination?
+  What makes a state healthy, and is the reward based on the state before or after
+  the action?
+- Which ending flag comes from `TimeLimit`, and how is its limit configured?
+  Do the XML joint travel limits themselves end an episode? Explain why the
+  rollout must reset after either ending flag.
 
 The supplied random-action path works before the evaluation TODOs are filled:
 
 ```bash
-uv run python -m pytest test/test_env.py -q
+uv run python -m pytest test/test_env.py
 uv run python scripts/evaluate.py --random-only --run-name random-debug --episodes 3 --trace
 uv run python scripts/evaluate.py --random-only --run-name random-debug --episodes 3 --video
 ```
@@ -204,6 +254,9 @@ behavior tests catch beyond an API shape check.
 
 ## 4. Training and experiment tracking
 
+**Files to edit:** [onboarding/train.py](onboarding/train.py) and
+[REPORT.md](REPORT.md) (Training).
+
 **Before starting:** environment checks pass. Read the introduction and example in
 [SB3's PPO guide](https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html).
 PPO collects experience and updates a policy; SB3 handles the PyTorch network and
@@ -217,7 +270,7 @@ your first run. The supplied code writes versions, task hashes, source revision,
 requested/actual steps, runtime, and output paths to `results/<run>/run.json`.
 
 ```bash
-uv run python -m pytest test/test_pipeline.py -k training_smoke -q
+uv run python -m pytest test/test_pipeline.py -k training_smoke
 uv run python scripts/train.py --run-name smoke --smoke
 uv run python scripts/train.py --run-name first-run --seed 0 --steps 100000
 uv run tensorboard --logdir runs
@@ -242,12 +295,15 @@ your code before the full run so its metadata points to a reproducible revision.
 
 ## 5. Evaluation and interpretation
 
+**Files to edit:** [onboarding/evaluate.py](onboarding/evaluate.py) and
+[REPORT.md](REPORT.md) (Evaluation).
+
 **Before starting:** a saved policy and matching `run.json` exist. Complete the
 two evaluation TODOs in `onboarding/evaluate.py`: load the policy on CPU and
 predict deterministic actions. Evaluation runs in a fresh process and never learns.
 
 ```bash
-uv run python -m pytest test/test_pipeline.py -q
+uv run python -m pytest test/test_pipeline.py
 uv run python scripts/evaluate.py --policy models/first-run/policy.zip --run-name first-run --video
 ```
 
@@ -276,12 +332,16 @@ a better-looking video seed or hide failed episodes.
 
 ## 6. Report and GitHub handoff
 
+**Files to edit:** [REPORT.md](REPORT.md) (Reproduce and review, Feedback, and any
+remaining TODOs).
+
 Finish `REPORT.md`: setup, model/task explanation, reproduction commands, learning
-curve, baseline comparison, selected rollout, and one limitation. Explain what
-carries over to humanoid control and what this exercise leaves out.
+curve, baseline comparison, selected rollout, one limitation, and onboarding
+feedback. Explain what carries over to humanoid control and what this exercise
+leaves out.
 
 ```bash
-uv run python -m pytest -q
+uv run python -m pytest
 git status
 git diff
 git add assets onboarding REPORT.md results

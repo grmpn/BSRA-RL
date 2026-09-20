@@ -7,7 +7,7 @@ from numpy.testing import assert_allclose
 from onboarding.env import SCENE
 
 
-def test_model_contract():
+def test_model_contract() -> None:
     model = mujoco.MjModel.from_xml_path(str(SCENE))
     assert (model.nq, model.nv, model.nu) == (2, 2, 1)
     cart, pole = model.geom("cart_geom"), model.geom("pole_geom")
@@ -50,7 +50,7 @@ def test_model_contract():
     assert mechanism.find("actuator/motor[@name='cart_motor']") is not None
 
 
-def test_motion():
+def test_motion() -> None:
     model = mujoco.MjModel.from_xml_path(str(SCENE))
     positions = []
     for control in [-0.1, 0.1]:

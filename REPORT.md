@@ -15,7 +15,10 @@ compact results, and artifacts instead of pasting logs.
 TODO: Link a small model screenshot (`results/model.png`). Explain the XML include,
 slide/hinge axes, unactuated pole, box half-extents, and degrees versus radians.
 
-| Component | Your task definition |
+Describe the task supplied by Gymnasium in your own words. For each row, identify
+the method, attribute, or XML setting you inspected to understand its behavior.
+
+| Component | Your explanation of the supplied task |
 | --- | --- |
 | Observation order, shape, dtype, units | TODO |
 | Action range and gear | TODO |
@@ -25,9 +28,11 @@ slide/hinge axes, unactuated pole, box half-extents, and degrees versus radians.
 | Termination | TODO |
 | Truncation | TODO |
 
-TODO: Trace reset and one step. Distinguish state from observation, falling from
-the time limit, and joint travel limits from episode endings. Name one bug caught
-by a behavior test, and explain the SB3 action-range warning.
+TODO: Trace reset and one step. Show how you accessed MuJoCo's `qpos`, `qvel`, and
+`ctrl` through the environment, and explain how the observation relates to those
+values. Identify where the supplied environment computes the reward. Distinguish
+falling from the time limit, and joint travel limits from episode endings. Name
+one bug caught by a behavior test, and explain the SB3 action-range warning.
 
 ## Training
 
@@ -66,3 +71,10 @@ video, and logs. Include where to place the downloaded policy.
 - Automated test results: TODO
 - Manual model/render/video checks: TODO
 - Fork PR link and review notes (record merge in the PR): TODO
+
+## Feedback
+
+- Did you learn anything from this onboarding? What was new, or what became
+  clearer? If little was new, say so: TODO
+- What improvements would make the onboarding easier to follow or more useful?
+  Mention any confusing instructions, missing background, or unnecessary work: TODO

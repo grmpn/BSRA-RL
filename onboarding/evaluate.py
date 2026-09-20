@@ -1,11 +1,15 @@
 """Evaluate the random baseline and a saved policy on the same reset seeds."""
 
 import argparse
+from collections.abc import Iterable, Sequence
 import csv
 import json
 from pathlib import Path
+from typing import Any
 
+import gymnasium as gym
 import numpy as np
+from numpy.typing import NDArray
 from stable_baselines3 import PPO
 import torch
 
@@ -17,13 +21,17 @@ ACTION_SEED_OFFSET = 20_000
 VIDEO_SEED = EVALUATION_SEEDS[0]
 
 
-def load_policy(path):
+def load_policy(path: str | Path) -> PPO:
     """Load on CPU without resuming training."""
     # MEMBER TODO 5.1: Return PPO.load(path, ...) on the CPU.
     raise NotImplementedError("Section 5: load the saved PPO policy")
 
 
-def choose_action(env, observation, policy):
+def choose_action(
+    env: gym.Env,
+    observation: NDArray[np.float64],
+    policy: PPO | None,
+) -> NDArray[np.float32]:
     if policy is None:
         return env.action_space.sample()
     # MEMBER TODO 5.2: Predict with deterministic=True; return only the action.
@@ -31,7 +39,13 @@ def choose_action(env, observation, policy):
     raise NotImplementedError("Section 5: choose a deterministic policy action")
 
 
-def run_episode(env, seed, policy=None, video_path=None, trace=False):
+def run_episode(
+    env: gym.Env,
+    seed: int,
+    policy: PPO | None = None,
+    video_path: Path | None = None,
+    trace: bool = False,
+) -> dict[str, Any]:
     """Supplied episode loop: reset after either ending flag, and stream video."""
     observation, _ = env.reset(seed=seed)
     env.action_space.seed(seed + ACTION_SEED_OFFSET)
@@ -68,7 +82,7 @@ def run_episode(env, seed, policy=None, video_path=None, trace=False):
             writer.close()
 
 
-def summarize(rows):
+def summarize(rows: Sequence[dict[str, Any]]) -> dict[str, int | float]:
     """Population standard deviations describe these episodes (ddof=0)."""
     returns = np.array([row["return"] for row in rows])
     lengths = np.array([row["length"] for row in rows])
@@ -80,8 +94,14 @@ def summarize(rows):
     }
 
 
-def evaluate(run_name, policy_path=None, seeds=EVALUATION_SEEDS, video=False,
-             output_dir=Path("."), trace=False):
+def evaluate(
+    run_name: str,
+    policy_path: str | Path | None = None,
+    seeds: Iterable[int] = EVALUATION_SEEDS,
+    video: bool = False,
+    output_dir: str | Path = Path("."),
+    trace: bool = False,
+) -> dict[str, Any]:
     validate_run_name(run_name)
     seeds = tuple(seeds)
     if not seeds or len(set(seeds)) != len(seeds) or any(seed < 0 for seed in seeds):
@@ -137,7 +157,7 @@ def evaluate(run_name, policy_path=None, seeds=EVALUATION_SEEDS, video=False,
     return summary
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-name", required=True)
     source = parser.add_mutually_exclusive_group(required=True)

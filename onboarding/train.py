@@ -9,6 +9,7 @@ import platform
 import re
 import subprocess
 import time
+from typing import Any
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
@@ -25,11 +26,11 @@ PPO_SETTINGS = dict(
 )
 
 
-def sha256(path):
+def sha256(path: str | Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def task_identity():
+def task_identity() -> dict[str, Any]:
     return {
         "environment": "InvertedPendulum-v5", "frame_skip": FRAME_SKIP,
         "max_episode_steps": MAX_EPISODE_STEPS, "reset_noise_scale": RESET_NOISE,
@@ -39,7 +40,7 @@ def task_identity():
     }
 
 
-def runtime_versions():
+def runtime_versions() -> dict[str, str]:
     return {"python": platform.python_version(), **{
         name: version(name) for name in (
             "gymnasium", "mujoco", "stable-baselines3", "torch", "numpy",
@@ -48,12 +49,18 @@ def runtime_versions():
     }}
 
 
-def validate_run_name(name):
+def validate_run_name(name: str) -> None:
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", name):
         raise ValueError("Use a run name containing only letters, digits, '-' and '_'.")
 
 
-def train(run_name, seed=0, total_timesteps=100_000, smoke=False, output_dir=Path(".")):
+def train(
+    run_name: str,
+    seed: int = 0,
+    total_timesteps: int = 100_000,
+    smoke: bool = False,
+    output_dir: str | Path = Path("."),
+) -> Path:
     validate_run_name(run_name)
     if total_timesteps <= 0 or seed < 0:
         raise ValueError("Steps must be positive and seed must be nonnegative.")
@@ -110,7 +117,7 @@ def train(run_name, seed=0, total_timesteps=100_000, smoke=False, output_dir=Pat
         env.close()
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-name", required=True)
     parser.add_argument("--seed", type=int, default=0)

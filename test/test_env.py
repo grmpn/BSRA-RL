@@ -1,3 +1,6 @@
+from pathlib import Path
+
+import gymnasium as gym
 import numpy as np
 from numpy.testing import assert_allclose
 import pytest
@@ -6,7 +9,7 @@ from stable_baselines3.common.env_checker import check_env
 from onboarding.env import make_env
 
 
-def test_environment_contract(env):
+def test_environment_contract(env: gym.Env) -> None:
     observation, info = env.reset(seed=7)
     assert observation.shape == (4,) and observation.dtype == np.float64
     assert isinstance(info, dict) and env.observation_space.contains(observation)
@@ -33,7 +36,7 @@ def test_environment_contract(env):
     check_env(env, warn=True, skip_render_check=True)
 
 
-def test_seeded_reset(env):
+def test_seeded_reset(env: gym.Env) -> None:
     first, _ = env.reset(seed=19)
     env.step(np.array([1.0]))
     repeat, _ = env.reset(seed=19)
@@ -44,7 +47,9 @@ def test_seeded_reset(env):
 
 
 @pytest.mark.parametrize("angle, expected_reward", [(0.0, 1), (0.3, 0), (-0.3, 0)])
-def test_reward_and_angle_failure(env, angle, expected_reward):
+def test_reward_and_angle_failure(
+    env: gym.Env, angle: float, expected_reward: int,
+) -> None:
     env.reset(seed=1)
     env.unwrapped.set_state(np.array([0.0, angle]), np.zeros(2))
     _, reward, terminated, truncated, _ = env.step(np.zeros(1))
@@ -54,7 +59,9 @@ def test_reward_and_angle_failure(env, angle, expected_reward):
 
 
 @pytest.mark.parametrize("value", [np.nan, np.inf, -np.inf])
-def test_nonfinite_observation(env, monkeypatch, value):
+def test_nonfinite_observation(
+    env: gym.Env, monkeypatch: pytest.MonkeyPatch, value: float,
+) -> None:
     env.reset(seed=1)
     # Test health classification without putting NaNs into the physics engine.
     monkeypatch.setattr(env.unwrapped, "do_simulation", lambda *args: None)
@@ -63,14 +70,14 @@ def test_nonfinite_observation(env, monkeypatch, value):
     assert reward == 0 and terminated and not truncated
 
 
-def test_cart_position_is_not_failure(env):
+def test_cart_position_is_not_failure(env: gym.Env) -> None:
     env.reset(seed=0)
     env.unwrapped.set_state(np.array([1.20, 0]), np.zeros(2))
     _, reward, terminated, _, _ = env.step(np.zeros(1))
     assert reward == 1 and not terminated
 
 
-def test_time_limit():
+def test_time_limit() -> None:
     env = make_env(max_episode_steps=3)
     try:
         env.reset(seed=0)
@@ -85,7 +92,9 @@ def test_time_limit():
         env.close()
 
 
-def test_scene_path_is_independent_of_shell_directory(monkeypatch, tmp_path):
+def test_scene_path_is_independent_of_shell_directory(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
     monkeypatch.chdir(tmp_path)
     env = make_env()
     try:

@@ -7,7 +7,11 @@ import mujoco
 import mujoco.viewer
 
 
-def view_model(model, control=0.0, seconds=10.0):
+def view_model(
+    model: mujoco.MjModel,
+    control: float = 0.0,
+    seconds: float = 10.0,
+) -> None:
     """Start each bounded trial from the upright zero state. Close with Escape."""
     data = mujoco.MjData(model)
     mujoco.mj_forward(model, data)

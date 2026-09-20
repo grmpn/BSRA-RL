@@ -8,7 +8,7 @@ import mujoco
 from onboarding.viewer import view_model
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("xml", nargs="?", type=Path, default=Path(__file__).resolve().parents[1] / "assets/scene.xml")
     parser.add_argument("--control", type=float, choices=[-0.1, 0.0, 0.1], default=0.0)
