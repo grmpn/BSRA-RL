@@ -13,6 +13,7 @@ __pycache__/
 build/
 dist/
 .ruff_cache/
+MUJOCO_LOG.TXT
 
 # Generated training artifacts
 logs/
