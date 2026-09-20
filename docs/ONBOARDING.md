@@ -239,13 +239,11 @@ uv run python scripts/evaluate.py --random-only --run-name random-debug --episod
 uv run python scripts/evaluate.py --random-only --run-name random-debug --episodes 3 --video
 ```
 
-Open `videos/random-debug/episode-10000.mp4`. On headless Linux, prefix the video
-command with `MUJOCO_GL=osmesa` if that renderer passed Setup.
+Open `videos/random-debug/episode-10000.mp4`.
 
 **Finished when:** API and behavior tests pass; random episodes end and reset; the custom
 scene is visible. SB3 warns that the action range is not normalized to `[-1, 1]`.
-Keep `[-3, 3]` for this task and record that warning. Explain one bug that the
-behavior tests catch beyond an API shape check.
+Keep `[-3, 3]` for this task and record that warning.
 
 ## 4. Training and experiment tracking
 
