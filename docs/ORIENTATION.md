@@ -9,7 +9,7 @@ This orientation gives us shared vocabulary before the next meeting. You do not 
 3. **Skim:** [Gymnasium — Basic Usage](https://gymnasium.farama.org/introduction/basic_usage/). Follow the flow from `reset()` through repeated `step()` calls; notice observations, actions, rewards, termination, and truncation.
 4. **Skim:** [Stable-Baselines3 — Getting Started](https://stable-baselines3.readthedocs.io/en/master/guide/quickstart.html). Look for how a model is created, trained, saved, and used for prediction. Do not run the code yet.
 
-The [reading list](resources/reading-list.md) explains why each resource was selected.
+The [reading list](../resources/reading-list.md) explains why each resource was selected.
 
 ## What you should know after reading
 

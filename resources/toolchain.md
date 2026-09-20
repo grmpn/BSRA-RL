@@ -16,4 +16,4 @@ Our tools form one learning pipeline:
 
 In short: MuJoCo supplies the simulated world, Gymnasium defines the task, SB3 learns a policy with PyTorch, and TensorBoard helps us inspect the experiment.
 
-Installation instructions will arrive with the onboarding starter files so they can be tested as one reproducible setup.
+Follow the [onboarding setup guide](../docs/ONBOARDING.md#1-setup-and-git-workflow) to install the supplied environment and check that the tools work together.

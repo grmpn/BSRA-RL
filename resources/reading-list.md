@@ -29,4 +29,4 @@ Last reviewed: **2026-09-17**
 - **Skim:** [The example workflow](https://stable-baselines3.readthedocs.io/en/master/guide/quickstart.html); do not run it yet.
 - **Take away:** Recognize the steps to create, train, save, load, and use a policy.
 
-The [orientation checklist](../ORIENTATION.md) turns these readings into discussion prompts. Later material will be added only when it becomes relevant to onboarding or a team project.
+The [orientation checklist](../docs/ORIENTATION.md) turns these readings into discussion prompts. Later material will be added only when it becomes relevant to onboarding or a team project.
