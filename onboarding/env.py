@@ -11,10 +11,7 @@ FRAME_SKIP = 2
 RESET_NOISE = 0.01
 
 
-def make_env(
-    render_mode: str | None = None,
-    max_episode_steps: int = MAX_EPISODE_STEPS,
-) -> gym.Env:
+def make_env(render_mode: str | None = None, max_episode_steps: int = MAX_EPISODE_STEPS) -> gym.Env:
     """Use the custom scene with Gymnasium's supplied balancing task."""
     # MEMBER TODO 3: Return gym.make("InvertedPendulum-v5", ...).
     # Use str(SCENE), FRAME_SKIP, RESET_NOISE, max_episode_steps, and render_mode.

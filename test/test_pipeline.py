@@ -41,9 +41,7 @@ def test_policy_round_trip(trained_run: tuple[Path, Path], env: gym.Env) -> None
         assert row["terminated"] or row["truncated"]
 
 
-def test_evaluation_outputs(
-    trained_run: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_evaluation_outputs(trained_run: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     root, policy = trained_run
     # Ordinary evaluation must neither render nor start a video encoder.
     import imageio_ffmpeg
@@ -81,9 +79,7 @@ def test_evaluation_outputs(
         evaluate("invalid", seeds=(1, 1), output_dir=root)
 
 
-def test_evaluation_rejects_mismatched_policy(
-    trained_run: tuple[Path, Path], tmp_path: Path,
-) -> None:
+def test_evaluation_rejects_mismatched_policy(trained_run: tuple[Path, Path], tmp_path: Path) -> None:
     root, _ = trained_run
     wrong_policy = tmp_path / "wrong.zip"
     wrong_policy.write_bytes(b"not the recorded policy")

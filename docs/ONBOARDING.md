@@ -22,24 +22,25 @@ The effort estimate still needs a beginner pilot.
 `assets/scene.xml`, `onboarding/env.py`, `onboarding/train.py`, and
 `onboarding/evaluate.py`; fill in [REPORT.md](REPORT.md).
 `scripts/` contains commands you run; `onboarding/` contains the Python you edit.
+After cloning, run assignment commands from the repository root. Command-line
+paths in this guide are relative to that root, including `docs/REPORT.md`.
 The supplied `test/` checks describe the assignment contract. Tests for unfinished
 sections are expected to fail; the setup diagnostic works immediately.
-
-**Review status:** the starter is developed on `onboarding`; the completed example
-is on `onboarding-validation`. The fork instructions below assume the starter has
-been merged into the hub's `main` before a cohort starts. To review locally now,
-use either branch directly and start at `uv sync`.
 
 ## 1. Setup and Git workflow
 
 **Files to edit:** [REPORT.md](REPORT.md) (Setup).
 
-Read the [toolchain overview](resources/toolchain.md). Install
+Read the [toolchain overview](../resources/toolchain.md). Install
 [Git](https://docs.github.com/en/get-started/git-basics/set-up-git) and
 [uv](https://docs.astral.sh/uv/getting-started/installation/) in the environment
 where you will run the exercise. New to terminals? Read the
 [Ubuntu command-line introduction](https://ubuntu.com/tutorials/command-line-for-beginners)
 through working with directories. `pwd` shows your directory; `cd` changes it.
+
+Throughout this onboarding, look up any Git or uv command or flag you do not
+recognize before running it. Use the documentation or built-in help to understand
+what it does and how it affects your repository or Python environment.
 
 | Platform | Setup |
 | --- | --- |
@@ -65,23 +66,25 @@ git remote -v
 git switch -c onboarding/cartpole
 git status
 uv sync
+```
+
+A **branch** is a named line of development within a repository.
+`git switch -c onboarding/cartpole` creates a branch named `onboarding/cartpole`
+from your current commit and switches to it (`-c` means create). Your new commits
+go on this branch, so you can work on the assignment while `main` stays unchanged
+until you merge your work into it.
+
+### How you know you've finished
+
+Run the setup diagnostic. It checks package imports, CPU calculations, the video
+encoder, and a small physics simulation that works before you complete any TODOs.
+
+```bash
 uv run python scripts/check_setup.py
 ```
 
-Check that `origin` points to **your fork**. Stay in `BSRA-RL/` for every command.
-`uv sync` creates `.venv`, installs the dependencies recorded in `uv.lock`, and
-installs the local package in editable mode. Your Python edits take effect without
-reinstalling it. Select `.venv/bin/python` in your editor
-([VS Code instructions](https://code.visualstudio.com/docs/python/environments)).
-Use `uv run` to run commands inside that environment.
-
-Leave `pyproject.toml`, `uv.lock`, and `.python-version` unchanged during the
-assignment. Video encoding is included; no extra packages or CUDA setup are needed.
-See [uv projects](https://docs.astral.sh/uv/guides/projects/) and
-[lockfile behavior](https://docs.astral.sh/uv/concepts/projects/sync/).
-If dependency files change unexpectedly, inspect the diff with a maintainer.
-
-Check rendering separately:
+Check rendering separately. `--viewer` opens an interactive window; `--rgb`
+checks that MuJoCo can render an image for video recording.
 
 ```bash
 uv run python scripts/check_setup.py --viewer
@@ -93,19 +96,16 @@ On macOS, replace the first command with
 MuJoCo requires this launcher for its
 [passive viewer](https://mujoco.readthedocs.io/en/stable/python.html#passive-viewer).
 
-**Check:** package, CPU, encoder, and physics checks pass; a falling sphere appears
-for three seconds and the window closes. The fixture is independent of your XML.
+**Finished when:** all diagnostic checks pass; a falling sphere appears for three
+seconds and the window closes. The fixture is independent of your XML.
 If a viewer fails, resolve the display/WSLg setup before working on the model.
-On a headless Linux machine with OSMesa installed, use
-`MUJOCO_GL=osmesa uv run python scripts/check_setup.py --rgb` for offscreen rendering;
-this does not check an interactive window.
 
-Add your OS, setup results, and any fixes to `REPORT.md`, then practice:
+Add your OS, setup results, and any fixes to `docs/REPORT.md`, then practice:
 
 ```bash
 git status
 git diff
-git add REPORT.md
+git add docs/REPORT.md
 git commit -m "Record onboarding setup"
 git push -u origin onboarding/cartpole
 ```
@@ -116,8 +116,8 @@ you edited. The final workflow is **branch → push → PR into your fork → re
 
 ## 2. XML model and scene creation
 
-**Files to edit:** [assets/cartpole.xml](assets/cartpole.xml),
-[assets/scene.xml](assets/scene.xml), and [REPORT.md](REPORT.md) (Model and task).
+**Files to edit:** [assets/cartpole.xml](../assets/cartpole.xml),
+[assets/scene.xml](../assets/scene.xml), and [REPORT.md](REPORT.md) (Model and task).
 
 **Before starting:** setup passes. Read MuJoCo's
 [modeling introduction](https://mujoco.readthedocs.io/en/stable/modeling.html)
@@ -145,8 +145,19 @@ rounded caps. With these placements, zero joint positions put the pole upright;
 the hinge is unactuated. XML angles use degrees here, while runtime joint angles
 use radians. Colors, camera placement, and scenery dimensions are your choice.
 
+### How you know you've finished
+
+Run the model tests. They check XML composition, body dimensions and masses,
+joint and motor settings, simulation options, and motion under opposite controls.
+
 ```bash
 uv run python -m pytest test/test_model.py
+```
+
+Inspect the model in the viewer, first with no control and then with opposite
+controls. This checks that the scene looks right and the axes behave as intended.
+
+```bash
 uv run python scripts/view_model.py
 uv run python scripts/view_model.py --control 0.1 --seconds 1
 uv run python scripts/view_model.py --control -0.1 --seconds 1
@@ -154,73 +165,47 @@ uv run python scripts/view_model.py --control -0.1 --seconds 1
 
 On macOS use `uv run mjpython scripts/view_model.py ...`.
 Each viewer trial starts from zero. Rotate the camera to check the axes.
-**Check:** tests pass, opposite controls move the cart in opposite directions,
+
+**Finished when:** tests pass, opposite controls move the cart in opposite directions,
 and the pole rotates about the hinge. It need not balance without a policy.
+
 Save a small screenshot in `results/model.png`, link it in the report, and explain
 which XML file owns the mechanism. Commit the two XML files and report evidence.
 
 ## 3. Environment setup and inspection
 
-**Files to edit:** [onboarding/env.py](onboarding/env.py) and
+**Files to edit:** [onboarding/env.py](../onboarding/env.py) and
 [REPORT.md](REPORT.md) (Model and task).
 
 **Before starting:** model tests pass. Review
 [Gymnasium basic usage](https://gymnasium.farama.org/introduction/basic_usage/) and
 the [InvertedPendulum task](https://gymnasium.farama.org/environments/mujoco/inverted_pendulum/).
-Gymnasium already defines the observations, rewards, reset behavior, and termination
-rules. Your job is to connect our custom model and understand that supplied task.
+Gymnasium already defines the observations, rewards, reset behavior, and termination rules. Your job is to connect our custom model and understand that supplied task.
 You do not need to design or implement observation or reward functions.
 
 Complete `make_env()` in `onboarding/env.py`, using the supplied path and task
 constants. Pass the rendering mode and episode limit through to `gym.make()`.
 The latter applies the `TimeLimit` wrapper.
 
-### Access the simulation state
+### Where the simulation values live
 
-Use `env.reset()` and `env.step(action)` through the wrapped environment so that
-the episode limit stays active. For inspection, [`env.unwrapped`](https://gymnasium.farama.org/api/env/#gymnasium.Env.unwrapped)
-gives you the underlying `InvertedPendulumEnv`. Its `model` is a `mujoco.MjModel`
-containing the compiled model parameters; its `data` is a `mujoco.MjData`
-containing the current simulation state. Access joint positions through
-`env.unwrapped.data.qpos`, joint velocities through `.qvel`, and actuator controls
-through `.ctrl`. MuJoCo also supports
-[access by joint name](https://mujoco.readthedocs.io/en/stable/python.html#named-access).
-These arrays are live views; use `.copy()` to keep a snapshot before stepping.
+MuJoCo separates the compiled model parameters (`mujoco.MjModel`) from the current
+simulation state (`mujoco.MjData`). In our environment, these are available as
+`env.unwrapped.model` and `env.unwrapped.data`. The latter contains `qpos` for joint
+positions, `qvel` for joint velocities, and `ctrl` for actuator controls. In the
+environment's source, `self.data` refers to that same data object.
 
-After completing `make_env()`, run this from the repository root:
-
-```bash
-uv run python - <<'PY'
-import mujoco
-from onboarding.env import make_env
-
-env = make_env()
-try:
-    observation, info = env.reset(seed=7)
-    model: mujoco.MjModel = env.unwrapped.model
-    data: mujoco.MjData = env.unwrapped.data
-    print("observation:", observation, observation.shape, observation.dtype)
-    print("spaces:", env.observation_space, env.action_space)
-    print("joint positions:", data.qpos.copy())
-    print("joint velocities:", data.qvel.copy())
-    print("hinge position/velocity:", data.joint("hinge").qpos, data.joint("hinge").qvel)
-    print("physics timestep:", model.opt.timestep)
-    env.action_space.seed(7)
-    action = env.action_space.sample()
-    observation, reward, terminated, truncated, info = env.step(action)
-    print("action / controls:", action, data.ctrl.copy())
-    print("after step:", observation, reward, terminated, truncated)
-finally:
-    env.close()
-PY
-```
+Read MuJoCo's [Python structs documentation](https://mujoco.readthedocs.io/en/stable/python.html#structs)
+and [named access examples](https://mujoco.readthedocs.io/en/stable/python.html#named-access)
+to understand how those values are exposed. Recognize these attributes while
+reading the supplied environment code; no separate state-access exercise is needed.
 
 ### Explain the supplied task
 
 Read `_get_obs()`, `reset_model()`, and `step()` in the
 [pinned upstream implementation](https://github.com/Farama-Foundation/Gymnasium/blob/v1.2.3/gymnasium/envs/mujoco/inverted_pendulum_v5.py).
-Use that source, your XML, the constants in `onboarding/env.py`, and the inspection
-above to fill the task table in `REPORT.md` in your own words:
+Use that source, your XML, the constants in `onboarding/env.py`, and the linked
+documentation to fill the task table in `docs/REPORT.md` in your own words:
 
 - How does `_get_obs()` turn `qpos` and `qvel` into the observation? Match each
   entry to a joint and identify its units, shape, and dtype.
@@ -235,26 +220,36 @@ above to fill the task table in `REPORT.md` in your own words:
   Do the XML joint travel limits themselves end an episode? Explain why the
   rollout must reset after either ending flag.
 
-The supplied random-action path works before the evaluation TODOs are filled:
+### How you know you've finished
+
+Run the environment tests. They check the Gymnasium API, observation and action
+spaces, timing, seeded resets, rewards, termination, and the time limit. They also
+check that loading the scene does not depend on your terminal's working directory.
 
 ```bash
 uv run python -m pytest test/test_env.py
+```
+
+Run random-action episodes to check the environment before completing the policy
+evaluation TODOs. `--trace` prints observations, actions, rewards, and ending
+flags; `--video` records a rollout so you can inspect the custom scene.
+
+```bash
 uv run python scripts/evaluate.py --random-only --run-name random-debug --episodes 3 --trace
 uv run python scripts/evaluate.py --random-only --run-name random-debug --episodes 3 --video
 ```
 
 Open `videos/random-debug/episode-10000.mp4`. On headless Linux, prefix the video
 command with `MUJOCO_GL=osmesa` if that renderer passed Setup.
-`--trace` prints observations, actions, rewards, and ending flags.
 
-**Check:** API and behavior tests pass; random episodes end and reset; the custom
+**Finished when:** API and behavior tests pass; random episodes end and reset; the custom
 scene is visible. SB3 warns that the action range is not normalized to `[-1, 1]`.
 Keep `[-3, 3]` for this task and record that warning. Explain one bug that the
 behavior tests catch beyond an API shape check.
 
 ## 4. Training and experiment tracking
 
-**Files to edit:** [onboarding/train.py](onboarding/train.py) and
+**Files to edit:** [onboarding/train.py](../onboarding/train.py) and
 [REPORT.md](REPORT.md) (Training).
 
 **Before starting:** environment checks pass. Read the introduction and example in
@@ -269,10 +264,38 @@ statistics. The default settings are explicit in `PPO_SETTINGS`; keep them for
 your first run. The supplied code writes versions, task hashes, source revision,
 requested/actual steps, runtime, and output paths to `results/<run>/run.json`.
 
+The smoke run is 256 steps and checks the pipeline, not learning. The full
+100,000-step budget is a starting point, not a promised score. PPO collects full
+rollouts, so with 2,048 steps per rollout it actually collects **100,352** steps.
+Run names cannot be reused for training; choose a new name to preserve earlier work.
+
+### How you know you've finished
+
+Run the training test. It checks that a short PPO run saves a policy, records
+training metadata and TensorBoard episode statistics, and rejects a reused run
+name.
+
 ```bash
 uv run python -m pytest test/test_pipeline.py -k training_smoke
+```
+
+Check the training script with a smoke run. It writes the policy, metadata, and
+logs under the `smoke` run name so you can inspect the outputs.
+
+```bash
 uv run python scripts/train.py --run-name smoke --smoke
+```
+
+Commit your code before the full run so its metadata points to a reproducible
+revision, then train the policy you will evaluate in Stage 5:
+
+```bash
 uv run python scripts/train.py --run-name first-run --seed 0 --steps 100000
+```
+
+Open TensorBoard to inspect the recorded learning statistics:
+
+```bash
 uv run tensorboard --logdir runs
 ```
 
@@ -284,30 +307,19 @@ smoothing to zero for the report and save a small curve image at
 TensorBoard's "TensorFlow installation not found" notice is expected; these
 scalar plots work without TensorFlow.
 
-The smoke run is 256 steps and checks the pipeline, not learning. The full
-100,000-step budget is a starting point, not a promised score. PPO collects full
-rollouts, so with 2,048 steps per rollout it actually collects **100,352** steps.
-Run names cannot be reused for training; choose a new name to preserve earlier work.
-
-**Check:** the training test passes, `models/first-run/policy.zip` exists, and
-TensorBoard has real episode statistics. Record elapsed time and settings. Commit
-your code before the full run so its metadata points to a reproducible revision.
+**Finished when:** the training test passes, `models/first-run/policy.zip` exists,
+and TensorBoard has real episode statistics. Record elapsed time and settings.
 
 ## 5. Evaluation and interpretation
 
-**Files to edit:** [onboarding/evaluate.py](onboarding/evaluate.py) and
+**Files to edit:** [onboarding/evaluate.py](../onboarding/evaluate.py) and
 [REPORT.md](REPORT.md) (Evaluation).
 
 **Before starting:** a saved policy and matching `run.json` exist. Complete the
 two evaluation TODOs in `onboarding/evaluate.py`: load the policy on CPU and
 predict deterministic actions. Evaluation runs in a fresh process and never learns.
 
-```bash
-uv run python -m pytest test/test_pipeline.py
-uv run python scripts/evaluate.py --policy models/first-run/policy.zip --run-name first-run --video
-```
-
-Use the same run name as training. The command verifies the policy and task
+Use the same run name as training. The evaluation script verifies the policy and task
 against the training record, then compares PPO and random actions on reset seeds
 **10000–10019**. Reserve these seeds for evaluation. Random action sampling has
 its own seed (`reset seed + 20000`). Both agents get the same starting-state seeds.
@@ -323,63 +335,96 @@ frames into `videos/first-run/episode-10000.mp4` at 25 fps, derived from the con
 interval. Other episodes run without rendering. Without `--video`, no encoder
 starts and the new summary records no video.
 
-**Check:** tests pass and the video plays. Compare the baseline and policy in the
-report. A training curve and a good-looking video do not replace multi-episode
-evaluation. These episodes measure varied starts for one trained policy, not
-variation across training seeds. There is **no required return threshold**.
+Compare the baseline and policy in the report. A training curve and a good-looking
+video do not replace multi-episode evaluation. These episodes measure varied starts
+for one trained policy, not variation across training seeds. There is **no required
+return threshold**.
 If learning is weak, use checks and logs to support one diagnosis; do not select
 a better-looking video seed or hide failed episodes.
+
+### How you know you've finished
+
+Run the pipeline tests. They check smoke training, saved-policy loading,
+deterministic actions, evaluation statistics and output files, repeatable results,
+and rejection of a policy that does not match its training record.
+
+```bash
+uv run python -m pytest test/test_pipeline.py
+```
+
+Evaluate your saved policy against the random baseline and record the predetermined
+rollout. This also checks video recording, which the automated tests do not cover.
+
+```bash
+uv run python scripts/evaluate.py --policy models/first-run/policy.zip --run-name first-run --video
+```
+
+**Finished when:** tests pass, the video plays, and your report compares the
+baseline and PPO results using the generated CSV and JSON files.
 
 ## 6. Report and GitHub handoff
 
 **Files to edit:** [REPORT.md](REPORT.md) (Reproduce and review, Feedback, and any
 remaining TODOs).
 
-Finish `REPORT.md`: setup, model/task explanation, reproduction commands, learning
-curve, baseline comparison, selected rollout, one limitation, and onboarding
+Finish `docs/REPORT.md`: setup, model/task explanation, reproduction commands, learning
+curve, baseline comparison, rollout observations, one limitation, and onboarding
 feedback. Explain what carries over to humanoid control and what this exercise
 leaves out.
 
+### How you know you've finished
+
+Run the full test suite before publishing your handoff. It checks the model,
+environment, smoke training, saved-policy loading, and evaluation outputs together.
+Use your earlier manual checks as evidence that the viewer and video also work.
+
 ```bash
 uv run python -m pytest
+```
+
+After the tests pass, review and commit your report, code, and compact results:
+
+```bash
 git status
 git diff
-git add assets onboarding REPORT.md results
-git diff --cached
+git add assets onboarding docs/REPORT.md results
+git diff --staged
 git commit -m "Complete CartPole onboarding report"
 git push
 ```
 
 Commit compact JSON/CSV results and images. `.venv`, `models`, `runs`, and `videos`
-are ignored. Put the policy, rollout video, and a ZIP of TensorBoard logs in a
-[GitHub release in your own fork](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository),
-tagged `cartpole-v1` at your solution commit. Link its assets in `REPORT.md`, then
-commit and push the link update. A reviewer should download the policy to
-`models/first-run/policy.zip`; the recorded hash checks that it is the right file.
+are ignored. Keep the saved policy, TensorBoard logs, and rollout video locally.
+Share them directly with the RL lead if requested; uploading them or creating a
+GitHub release is not required for completion.
 
 Follow [GitHub's PR instructions](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request).
 Inspect the repository selector: **base repository `YOUR-USERNAME/BSRA-RL`, base
 branch `main`, compare branch `onboarding/cartpole`**. Member solutions stay in
 member forks. Example description:
 
-> Completes the custom CartPole model and PPO experiment. Report and artifacts:
-> REPORT.md. Checks: setup, model/environment tests, smoke train, saved-policy
+> Completes the custom CartPole model and PPO experiment. Report and results:
+> docs/REPORT.md. Checks: setup, model/environment tests, smoke train, saved-policy
 > evaluation, and playable seed-10000 video. Limitation: one training seed.
 
-Review the diff, request a peer or mentor review where available, and address
-feedback on the same branch. Record the review in the PR, then merge it through
-GitHub. The merged fork PR is your handoff link; share it with the RL lead in
-your existing team conversation.
+Review the diff, record the review in the PR, then merge it through
+GitHub. Your completed work and finalized report should now be on your fork's
+`main` branch.
 
 ```bash
 git switch main
 git pull --ff-only origin main
 ```
 
-**Completion check:** a reviewer can clone your fork, run `uv sync` and the tests,
-download the saved policy, and reproduce the evaluation with the report's command.
-Full retraining is optional for review. The report, artifact links, and reviewed,
-merged PR must all be present.
+**Finished when:** a reviewer can clone your fork, run `uv sync` and the tests,
+and understand your experiment from the report and committed results. The report,
+compact results and images, and reviewed, merged fork PR must all be present.
 
-Official references checked 2026-09-20. Maintainers should pilot setup, interactive
-rendering, and video on each cohort's platforms before assigning the exercise.
+## Submit your onboarding
+
+Post a link to your completed forked repository in the **software channel on
+Discord** and ping **@Quinn**. Make sure the repository includes your completed
+code and finalized `docs/REPORT.md` on `main`.
+
+You can also send Quinn the repository link by **Discord DM**, or **present your
+work to Quinn during a meeting** and share the link then.

@@ -54,13 +54,7 @@ def validate_run_name(name: str) -> None:
         raise ValueError("Use a run name containing only letters, digits, '-' and '_'.")
 
 
-def train(
-    run_name: str,
-    seed: int = 0,
-    total_timesteps: int = 100_000,
-    smoke: bool = False,
-    output_dir: str | Path = Path("."),
-) -> Path:
+def train(run_name: str, seed: int = 0, total_timesteps: int = 100_000, smoke: bool = False, output_dir: str | Path = Path(".")) -> Path:
     validate_run_name(run_name)
     if total_timesteps <= 0 or seed < 0:
         raise ValueError("Steps must be positive and seed must be nonnegative.")

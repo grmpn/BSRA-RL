@@ -27,11 +27,7 @@ def load_policy(path: str | Path) -> PPO:
     raise NotImplementedError("Section 5: load the saved PPO policy")
 
 
-def choose_action(
-    env: gym.Env,
-    observation: NDArray[np.float64],
-    policy: PPO | None,
-) -> NDArray[np.float32]:
+def choose_action(env: gym.Env, observation: NDArray[np.float64], policy: PPO | None) -> NDArray[np.float32]:
     if policy is None:
         return env.action_space.sample()
     # MEMBER TODO 5.2: Predict with deterministic=True; return only the action.
@@ -39,13 +35,7 @@ def choose_action(
     raise NotImplementedError("Section 5: choose a deterministic policy action")
 
 
-def run_episode(
-    env: gym.Env,
-    seed: int,
-    policy: PPO | None = None,
-    video_path: Path | None = None,
-    trace: bool = False,
-) -> dict[str, Any]:
+def run_episode(env: gym.Env, seed: int, policy: PPO | None = None, video_path: Path | None = None, trace: bool = False) -> dict[str, Any]:
     """Supplied episode loop: reset after either ending flag, and stream video."""
     observation, _ = env.reset(seed=seed)
     env.action_space.seed(seed + ACTION_SEED_OFFSET)
@@ -94,14 +84,7 @@ def summarize(rows: Sequence[dict[str, Any]]) -> dict[str, int | float]:
     }
 
 
-def evaluate(
-    run_name: str,
-    policy_path: str | Path | None = None,
-    seeds: Iterable[int] = EVALUATION_SEEDS,
-    video: bool = False,
-    output_dir: str | Path = Path("."),
-    trace: bool = False,
-) -> dict[str, Any]:
+def evaluate(run_name: str, policy_path: str | Path | None = None, seeds: Iterable[int] = EVALUATION_SEEDS, video: bool = False, output_dir: str | Path = Path("."), trace: bool = False) -> dict[str, Any]:
     validate_run_name(run_name)
     seeds = tuple(seeds)
     if not seeds or len(set(seeds)) != len(seeds) or any(seed < 0 for seed in seeds):

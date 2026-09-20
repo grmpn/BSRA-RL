@@ -47,9 +47,7 @@ def test_seeded_reset(env: gym.Env) -> None:
 
 
 @pytest.mark.parametrize("angle, expected_reward", [(0.0, 1), (0.3, 0), (-0.3, 0)])
-def test_reward_and_angle_failure(
-    env: gym.Env, angle: float, expected_reward: int,
-) -> None:
+def test_reward_and_angle_failure(env: gym.Env, angle: float, expected_reward: int) -> None:
     env.reset(seed=1)
     env.unwrapped.set_state(np.array([0.0, angle]), np.zeros(2))
     _, reward, terminated, truncated, _ = env.step(np.zeros(1))
@@ -59,9 +57,7 @@ def test_reward_and_angle_failure(
 
 
 @pytest.mark.parametrize("value", [np.nan, np.inf, -np.inf])
-def test_nonfinite_observation(
-    env: gym.Env, monkeypatch: pytest.MonkeyPatch, value: float,
-) -> None:
+def test_nonfinite_observation(env: gym.Env, monkeypatch: pytest.MonkeyPatch, value: float) -> None:
     env.reset(seed=1)
     # Test health classification without putting NaNs into the physics engine.
     monkeypatch.setattr(env.unwrapped, "do_simulation", lambda *args: None)
@@ -92,9 +88,7 @@ def test_time_limit() -> None:
         env.close()
 
 
-def test_scene_path_is_independent_of_shell_directory(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
-) -> None:
+def test_scene_path_is_independent_of_shell_directory(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.chdir(tmp_path)
     env = make_env()
     try:

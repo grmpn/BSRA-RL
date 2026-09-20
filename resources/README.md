@@ -1,6 +1,6 @@
 # Learning resources
 
-Start with the [orientation](../ORIENTATION.md). It contains the complete checklist for the next meeting.
+Start with the [orientation](../docs/ORIENTATION.md). It contains the complete checklist for the next meeting.
 
 This directory has two supporting pages:
 
