@@ -18,8 +18,7 @@ request in your own fork.
 
 Start after the [orientation](ORIENTATION.md). You need basic Python functions,
 classes, and imports; Git and RL experience are not required. Budget about
-**4–8 focused hours over two weeks**, with a third week for setup or debugging.
-The effort estimate still needs a beginner pilot.
+**6–8 focused hours over two weeks**.
 
 **Before starting:** read the [toolchain overview](../resources/toolchain.md).
 Be able to explain how MuJoCo, Gymnasium, Stable-Baselines3 (SB3), and TensorBoard
@@ -196,55 +195,40 @@ model questions. Commit the two XML files and report evidence.
 ## 3. Environment setup and inspection
 
 **Files to edit:** [onboarding/env.py](../onboarding/env.py) and
-[REPORT.md](REPORT.md) (Model and task).
+[REPORT.md](REPORT.md#environment-stage-3) (Environment).
 
 **Before starting:** model tests pass. Review
 [Gymnasium basic usage](https://gymnasium.farama.org/introduction/basic_usage/) and
 the [InvertedPendulum task](https://gymnasium.farama.org/environments/mujoco/inverted_pendulum/).
-Gymnasium already defines the observations, rewards, reset behavior, and termination rules. Your job is to connect our custom model and understand that supplied task.
-You do not need to design or implement observation or reward functions.
+
+MuJoCo computes motion from your XML model and the applied controls. Gymnasium
+connects that simulation to RL: it accepts actions, returns observations and
+rewards, and starts new episodes with `reset()`. Your job is to connect the model
+and understand these interactions. The observation and reward functions are
+already supplied.
 
 Complete `make_env()` in `onboarding/env.py`, using the supplied path and task
 constants. Pass the rendering mode and episode limit through to `gym.make()`.
 The latter applies the `TimeLimit` wrapper.
 
-### Where the simulation values live
-
-MuJoCo separates the compiled model parameters (`mujoco.MjModel`) from the current
-simulation state (`mujoco.MjData`). In our environment, these are available as
-`env.unwrapped.model` and `env.unwrapped.data`. The latter contains `qpos` for joint
-positions, `qvel` for joint velocities, and `ctrl` for actuator controls. In the
-environment's source, `self.data` refers to that same data object.
-
-Read MuJoCo's [Python structs documentation](https://mujoco.readthedocs.io/en/stable/python.html#structs)
-and [named access examples](https://mujoco.readthedocs.io/en/stable/python.html#named-access)
-to understand how those values are exposed. Recognize these attributes while
-reading the supplied environment code; no separate state-access exercise is needed.
-
-### Explain the supplied task
+### Understand the supplied task
 
 Read `_get_obs()`, `reset_model()`, and `step()` in the
 [pinned upstream implementation](https://github.com/Farama-Foundation/Gymnasium/blob/v1.2.3/gymnasium/envs/mujoco/inverted_pendulum_v5.py).
-Follow `do_simulation()` into the
+For the physics, follow `do_simulation()` to `_step_mujoco_simulation()` in the
 [MuJoCo environment base class](https://github.com/Farama-Foundation/Gymnasium/blob/v1.2.3/gymnasium/envs/mujoco/mujoco_env.py)
-to see how actions reach `data.ctrl` and MuJoCo advances the simulation.
-Use that source, your XML, the constants in `onboarding/env.py`, and the linked
-documentation to fill the task table in `docs/REPORT.md` in your own words:
+to see how actions reach the simulator. In this code, `self.data` is MuJoCo's
+simulation data: `qpos` holds joint positions, `qvel` holds joint velocities, and
+`ctrl` holds actuator controls.
 
-- Which tool updates `qpos` and `qvel`, and how does `_get_obs()` turn them into
-  the observation read by the policy? Match each entry to a joint and identify
-  its units, shape, and dtype.
-- What action can the policy choose, how does it reach MuJoCo's actuator control,
-  and how does the motor's gear affect it?
-- How much simulated time passes per action? Check the physics timestep,
-  `env.unwrapped.frame_skip`, and `env.unwrapped.dt`.
-- What changes at reset, and what does setting a seed reproduce?
-- Where does `step()` advance physics, compute the reward, and decide termination?
-  What makes a state healthy, and is the reward based on the state before or after
-  the action?
-- Which ending flag comes from `TimeLimit`, and how is its limit configured?
-  Do the XML joint travel limits themselves end an episode? Explain why the
-  rollout must reset after either ending flag.
+Use that code, your XML, and the constants in `onboarding/env.py` to answer the
+five questions in [REPORT.md](REPORT.md#environment-stage-3): **observations,
+actions, physics, reset, and reward**. Keep each answer short and name the code
+or setting that supports it.
+
+During a rollout, reset after either `terminated` (task failure) or `truncated`
+(the `TimeLimit` episode limit). XML joint travel limits constrain the motion;
+they do not themselves end an episode.
 
 ### How you know you've finished
 
