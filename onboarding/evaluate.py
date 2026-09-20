@@ -130,7 +130,7 @@ def evaluate(run_name, policy_path=None, seeds=EVALUATION_SEEDS, video=False,
     }
     results.mkdir(parents=True, exist_ok=True)
     with (results / "episodes.csv").open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     (results / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
