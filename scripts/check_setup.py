@@ -31,6 +31,7 @@ def imports():
         importlib.import_module(module)
         print(f"  {distribution} {version(distribution)}")
     importlib.import_module("gymnasium.envs.mujoco")
+    importlib.import_module("tensorboard.default")
 
 
 def cpu():

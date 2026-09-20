@@ -228,6 +228,8 @@ Open TensorBoard's printed local URL. Look at `rollout/ep_rew_mean` and
 each statistic averages up to the most recent 100 training episodes. Set UI
 smoothing to zero for the report and save a small curve image at
 `results/first-run/learning-curve.png`. Explain improvement, variability, or a plateau.
+TensorBoard's "TensorFlow installation not found" notice is expected; these
+scalar plots work without TensorFlow.
 
 The smoke run is 256 steps and checks the pipeline, not learning. The full
 100,000-step budget is a starting point, not a promised score. PPO collects full
